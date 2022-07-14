@@ -1,18 +1,17 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { GameApiModule } from './game-api/game-api.module';
 import { TerminusModule } from '@nestjs/terminus';
 import { HttpModule } from '@nestjs/axios';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import {TypeOrmModule, TypeOrmModuleAsyncOptions} from '@nestjs/typeorm';
 import { ConvertPoolEntity } from './game-api/repository/convert-pool.entitty';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import DatabaseLogger from "./logger/database-logger";
-import {CustomProductionLevel} from "./logger/log-level";
-// import getLogLevels from "./logger/log-level";
-const dblevel = new CustomProductionLevel("prod"==process.env.NODE_ENV)
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-
+import {WinstonModule} from 'nest-winston';
+import {getLogFormat, typeOrmTransports,} from "./logger/winston.config";
+import {LoggerMiddleware} from "./middleware/logger.middleware";
+import DatabaseLogger from "./logger/database.logger";
+import {RequestContextMiddleware} from "./middleware/request-context.middleware";
 
 @Module({
   imports: [
@@ -22,24 +21,28 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
     }),
     TerminusModule,
     HttpModule,
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+    WinstonModule.forRootAsync({
       useFactory: async (configService: ConfigService) => ({
-        // fixme: db type을 env 로딩으로 변경
-        type: 'mysql',
-        host: configService.get('DB_HOST'),
-        port: configService.get('DB_PORT'),
-        username: configService.get('DB_USERNAME'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_DATABASE'),
-        entities: [ConvertPoolEntity],
-        synchronize: Boolean(configService.get('DB_SYNCHRONIZE')),
-        //['query']//Boolean(configService.get('DB_LOGGING')),
-        logging: ['query', 'error'],//dblevel.getDbLevel()
-        // logger: new DatabaseLogger(),
-        // logging: true,
-        logger: 'file', //'advanced-console'
+        format: getLogFormat(process.env.NODE_ENV),
+        transports: typeOrmTransports(process.env.NODE_ENV, configService)
       }),
+      inject: [ConfigService],
+    }),
+    TypeOrmModule.forRootAsync({
+      useFactory: async (configService: ConfigService) => {
+        return {
+          type: configService.get('DB_TYPE'),
+          host: configService.get('DB_HOST'),
+          port: configService.get('DB_PORT'),
+          username: configService.get('DB_USERNAME'),
+          password: configService.get('DB_PASSWORD'),
+          database: configService.get('DB_DATABASE'),
+          entities: [ConvertPoolEntity],
+          synchronize: Boolean(configService.get('DB_SYNCHRONIZE')),
+          logging: true,
+          logger: new DatabaseLogger(process.env.NODE_ENV)
+        } as TypeOrmModuleAsyncOptions
+      },
       inject: [ConfigService],
     }),
     GameApiModule,
@@ -47,4 +50,11 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+        .apply(LoggerMiddleware, RequestContextMiddleware)
+        .forRoutes({path: '*', method: RequestMethod.ALL});
+  }
+}

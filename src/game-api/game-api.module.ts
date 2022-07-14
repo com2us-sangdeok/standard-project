@@ -10,6 +10,7 @@ import { BlockchainModule } from '../blockchain/blockchain.module';
 import { GameApiV2Service } from './v2/game-api-v2.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConvertPoolEntity } from './repository/convert-pool.entitty';
+import {WinstonModule} from "nest-winston";
 
 @Module({
   // imports: [
@@ -27,7 +28,7 @@ import { ConvertPoolEntity } from './repository/convert-pool.entitty';
   //     },
   //   ]),
   // ],
-  imports: [BlockchainModule, TypeOrmModule.forFeature([ConvertPoolEntity])],
+  imports: [BlockchainModule, TypeOrmModule.forFeature([ConvertPoolEntity]), WinstonModule],
   controllers: [GameApiV1Controller, GameApiV2Controller],
   providers: [...gameApiProviders, GameApiV1Service, GameApiV2Service],
 })

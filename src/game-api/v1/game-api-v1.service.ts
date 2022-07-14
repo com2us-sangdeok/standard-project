@@ -7,6 +7,7 @@ import { GameApiV1ConvertPoolDto } from './dto/game-api-v1.dto';
 import { ConfigService } from '@nestjs/config';
 import { LoggerService } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import {RequestContext} from "../../context/request.context";
 
 @Injectable()
 export class GameApiV1Service {
@@ -24,6 +25,14 @@ export class GameApiV1Service {
   }
 
   create(createUserDto: GameApiV1ConvertPoolDto): Promise<ConvertPoolEntity> {
+    const transactionId: string = RequestContext.get(RequestContext.TXID);
+    RequestContext.set('user-id', 'alice');
+
+    const userId: string = RequestContext.get('user-id');
+    this.logger.log('>>>>>>>>>: ' + transactionId);
+    this.logger.log('>>>>>>>>>: ' + userId);
+
+    // db test
     const convertPoolEntity = new ConvertPoolEntity();
     convertPoolEntity.appName = createUserDto.appName;
     convertPoolEntity.lowerGameCurrency = createUserDto.lowerGameCurrency;
@@ -31,20 +40,18 @@ export class GameApiV1Service {
     convertPoolEntity.upperGameCurrency = createUserDto.upperGameCurrency;
     convertPoolEntity.ctx = createUserDto.ctx;
 
-    this.printLoggerServiceLog(createUserDto)
+    // log test
+    try {
+      throw new InternalServerErrorException('test');
+    } catch (e) {
+      this.logger.error('error: ' + JSON.stringify(convertPoolEntity), e.stack);
+    }
+    this.logger.warn('warn: ' + JSON.stringify(convertPoolEntity));
+    this.logger.log('log: ' + JSON.stringify(convertPoolEntity));
+    this.logger.verbose('verbose: ' + JSON.stringify(convertPoolEntity));
+    this.logger.debug('debug: ' + JSON.stringify(convertPoolEntity));
 
     return this.usersRepository.save(convertPoolEntity);
   }
 
-    printLoggerServiceLog(dto: GameApiV1ConvertPoolDto) {
-    try {
-      throw new InternalServerErrorException('test');
-    } catch (e) {
-      this.logger.error('error: ' + JSON.stringify(dto), e.stack);
-    }
-    this.logger.warn('warn: ' + JSON.stringify(dto));
-    this.logger.log('log: ' + JSON.stringify(dto));
-    this.logger.verbose('verbose: ' + JSON.stringify(dto));
-    this.logger.debug('debug: ' + JSON.stringify(dto));
-  }
 }

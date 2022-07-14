@@ -3,10 +3,10 @@ import { AppModule } from './app.module';
 import { VERSION_NEUTRAL, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
-import {CustomProductionLevel} from "./logger/log-level";
-// import getLogLevels from "./logger/log-level";
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-
+import {getLogFormat, logLevel} from "./logger/winston.config";
+import {WINSTON_MODULE_NEST_PROVIDER, WinstonModule} from 'nest-winston';
+import * as winston from 'winston';
+// import {winstonLogger} from "./logger/logger.module";
 /*
   todo:
     + Config
@@ -14,8 +14,8 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
     + Blockchain Connection
     Versioning
     + Swagger
+    Logger // log rotate
     Security (auth)
-    Logger
     Exception
     Error
     File
@@ -29,17 +29,24 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
     gRPC
  */
 async function bootstrap() {
-  const loglevel = new CustomProductionLevel(process.env.NODE_ENV === 'prod');
   const appOptions = {
     cors: true,
     bodyParser: true,
-    // logger: getLogLevels(process.env.NODE_ENV === 'prod')
-    // logger: loglevel.getLogLevel()
+    logger: //winstonLogger
+        WinstonModule.createLogger({
+      transports: [
+        new winston.transports.Console({
+          level: logLevel(process.env.NODE_ENV),
+          format: getLogFormat(process.env.NODE_ENV)
+        }),
+      ],
+    }),
   };
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, appOptions);
   const configService = app.get(ConfigService);
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+
   app.enableVersioning({
     type: VersioningType.URI,
     //fixme: default 설정으로 모든 contoller 버전 컨트롤
@@ -47,14 +54,14 @@ async function bootstrap() {
     // defaultVersion: '2',
   });
 
-  const options = new DocumentBuilder()
+  const swaggerOptions = new DocumentBuilder()
       .setTitle('Standard Project')
       .setDescription('Blockchain API description')
       .setVersion('1.0')
       // .addTag('blockchain')
       // .addBearerAuth()
       .build();
-  const document = SwaggerModule.createDocument(app, options);
+  const document = SwaggerModule.createDocument(app, swaggerOptions);
   SwaggerModule.setup(configService.get('SWAGGER_PATH'), app, document);
 
   await app.listen(configService.get('APP_PORT'));
