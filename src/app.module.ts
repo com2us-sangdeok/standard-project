@@ -54,7 +54,7 @@ import {RequestContextMiddleware} from "./middleware/request-context.middleware"
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-        .apply(LoggerMiddleware, RequestContextMiddleware)
+        .apply(RequestContextMiddleware, LoggerMiddleware)
         .forRoutes({path: '*', method: RequestMethod.ALL});
   }
 }

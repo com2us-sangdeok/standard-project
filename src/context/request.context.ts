@@ -1,11 +1,10 @@
 import * as uuid from 'uuid';
 import {Request, Response} from 'express';
-import {isNullOrUndefined} from 'util';
 import {getNamespace, Namespace} from 'cls-hooked';
 
 export class RequestContext {
 
-    public static readonly NAMESPACE = 'GAME-API.namespace';
+    public static readonly NAMESPACE = `${process.env.APP_NAME}.namespace`;
     public static readonly TXID = 'txId';
     public static readonly UNIQUE_KEY = 'unqKey';
 
@@ -36,7 +35,7 @@ export class RequestContext {
 
     public static currentRequestContext(): RequestContext {
         const namespace: Namespace = RequestContext.currentRequestNamespace();
-        return !isNullOrUndefined(namespace) ? namespace.get(RequestContext.TXID) : null;
+        return !(namespace === null || namespace === undefined || namespace.trim().length === 0) ? namespace.get(RequestContext.TXID) : null;
     }
 
     public static currentRequest(): Request {

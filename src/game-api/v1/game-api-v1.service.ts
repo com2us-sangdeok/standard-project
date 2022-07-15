@@ -25,12 +25,13 @@ export class GameApiV1Service {
   }
 
   create(createUserDto: GameApiV1ConvertPoolDto): Promise<ConvertPoolEntity> {
-    const transactionId: string = RequestContext.get(RequestContext.TXID);
     RequestContext.set('user-id', 'alice');
-
     const userId: string = RequestContext.get('user-id');
-    this.logger.log('>>>>>>>>>: ' + transactionId);
-    this.logger.log('>>>>>>>>>: ' + userId);
+    this.logger.log(`>>>>>>>>>: user-id : ${RequestContext.get('user-id')}`);
+    this.logger.log(`>>>>>>>>>: ${RequestContext.TXID} : ${RequestContext.get(RequestContext.TXID)}`);
+    this.logger.log(`>>>>>>>>>: ${RequestContext.UNIQUE_KEY} : ${RequestContext.get(RequestContext.UNIQUE_KEY)}`);
+    this.logger.log(`>>>>>>>>>: ${RequestContext.NAMESPACE} : ${RequestContext.get(RequestContext.NAMESPACE)}`);
+
 
     // db test
     const convertPoolEntity = new ConvertPoolEntity();

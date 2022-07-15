@@ -12,9 +12,9 @@ import * as winston from 'winston';
     + Config
     + DB Connection
     + Blockchain Connection
-    Versioning
+    + Versioning
     + Swagger
-    Logger // log rotate
+    + Logger // log rotate
     Security (auth)
     Exception
     Error
