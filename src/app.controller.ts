@@ -5,6 +5,7 @@ import {
   HealthCheckService,
   HttpHealthIndicator,
 } from '@nestjs/terminus';
+import { Fee, LCDClient, MnemonicKey } from '@terra-money/terra.js';
 
 @Controller()
 export class AppController {

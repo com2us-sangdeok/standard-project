@@ -1,17 +1,23 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod} from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { GameApiModule } from './game-api/game-api.module';
 import { TerminusModule } from '@nestjs/terminus';
 import { HttpModule } from '@nestjs/axios';
-import {TypeOrmModule, TypeOrmModuleAsyncOptions} from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { ConvertPoolEntity } from './game-api/repository/convert-pool.entitty';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import {WinstonModule} from 'nest-winston';
-import {getLogFormat, typeOrmTransports,} from "./logger/winston.config";
-import {LoggerMiddleware} from "./middleware/logger.middleware";
-import DatabaseLogger from "./logger/database.logger";
-import {RequestContextMiddleware} from "./middleware/request-context.middleware";
+import { CommonModule } from './modules/common.module';
+import { WinstonModule } from 'nest-winston';
+import { getLogFormat, typeOrmTransports } from './logger/winston.config';
+import { LoggerMiddleware } from './middleware/logger.middleware';
+import DatabaseLogger from './logger/database.logger';
+import { RequestContextMiddleware } from './middleware/request-context.middleware';
 
 @Module({
   imports: [
@@ -24,7 +30,7 @@ import {RequestContextMiddleware} from "./middleware/request-context.middleware"
     WinstonModule.forRootAsync({
       useFactory: async (configService: ConfigService) => ({
         format: getLogFormat(process.env.NODE_ENV),
-        transports: typeOrmTransports(process.env.NODE_ENV, configService)
+        transports: typeOrmTransports(process.env.NODE_ENV, configService),
       }),
       inject: [ConfigService],
     }),
@@ -38,23 +44,23 @@ import {RequestContextMiddleware} from "./middleware/request-context.middleware"
           password: configService.get('DB_PASSWORD'),
           database: configService.get('DB_DATABASE'),
           entities: [ConvertPoolEntity],
-          synchronize: Boolean(configService.get('DB_SYNCHRONIZE')),
+          // synchronize: configService.get('DB_SYNCHRONIZE') === 'true',
           logging: true,
-          logger: new DatabaseLogger(process.env.NODE_ENV)
-        } as TypeOrmModuleAsyncOptions
+          logger: new DatabaseLogger(process.env.NODE_ENV),
+        } as TypeOrmModuleAsyncOptions;
       },
       inject: [ConfigService],
     }),
     GameApiModule,
+    CommonModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-        .apply(RequestContextMiddleware, LoggerMiddleware)
-        .forRoutes({path: '*', method: RequestMethod.ALL});
+      .apply(RequestContextMiddleware, LoggerMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

@@ -13,7 +13,7 @@ export class LoggerMiddleware implements NestMiddleware {
         res.on('finish', () => {
             const { statusCode } = res;
             this.logger.log(
-                `${RequestContext.get(RequestContext.UNIQUE_KEY)} ${method} ${originalUrl} ${statusCode} ${ip} ${userAgent}`,
+                `${RequestContext.get(RequestContext.CORRELATION_ID)} ${method} ${originalUrl} ${statusCode} ${ip} ${userAgent}`,
             );
         });
         next();

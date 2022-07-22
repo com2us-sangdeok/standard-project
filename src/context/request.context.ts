@@ -4,9 +4,9 @@ import {getNamespace, Namespace} from 'cls-hooked';
 
 export class RequestContext {
 
-    public static readonly NAMESPACE = `${process.env.APP_NAME}.namespace`;
-    public static readonly TXID = 'txId';
-    public static readonly UNIQUE_KEY = 'unqKey';
+    public static readonly NAMESPACE = `${process.env.APP_NAME}`;
+    public static readonly REQUEST_ID = 'requestId';
+    public static readonly CORRELATION_ID = 'correlationId';
 
 
     public request: Request;
@@ -35,7 +35,7 @@ export class RequestContext {
 
     public static currentRequestContext(): RequestContext {
         const namespace: Namespace = RequestContext.currentRequestNamespace();
-        return !(namespace === null || namespace === undefined || namespace.trim().length === 0) ? namespace.get(RequestContext.TXID) : null;
+        return !(namespace === null || namespace === undefined ) ? namespace.get(RequestContext.REQUEST_ID) : null;
     }
 
     public static currentRequest(): Request {

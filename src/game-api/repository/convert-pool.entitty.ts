@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import {ApiProperty} from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('ConvertPool')
 export class ConvertPoolEntity {
@@ -37,7 +37,7 @@ export class ConvertPoolEntity {
   @CreateDateColumn()
   createdAt: string;
 
-  @ApiProperty({ example: '2022-07-06T19:04:04.739Z'})
+  @ApiProperty({ example: '2022-07-06T19:04:04.739Z' })
   @UpdateDateColumn()
   updatedAt: string;
 }

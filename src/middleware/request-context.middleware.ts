@@ -10,16 +10,17 @@ export class RequestContextMiddleware implements NestMiddleware {
         let reqContext = new RequestContext(req, res);
 
         const namespace: Namespace = getNamespace(RequestContext.NAMESPACE) || createNamespace(RequestContext.NAMESPACE);
+
         namespace.run(() => {
-            namespace.set(RequestContext.TXID, reqContext.id);
-            res.setHeader(RequestContext.TXID, reqContext.id);
-            if(!(reqContext.request.get(RequestContext.UNIQUE_KEY) === null ||
-                    reqContext.request.get(RequestContext.UNIQUE_KEY) === undefined ||
-                    reqContext.request.get(RequestContext.UNIQUE_KEY).trim().length === 0)
-            ) {
-                namespace.set(RequestContext.UNIQUE_KEY, reqContext.request.get(RequestContext.UNIQUE_KEY));
+            namespace.set(RequestContext.REQUEST_ID, reqContext.id);
+            res.setHeader(RequestContext.REQUEST_ID, reqContext.id);
+
+            if(!(reqContext.request.get('correlationId') === null ||
+                reqContext.request.get('correlationId') === undefined ||
+                reqContext.request.get('correlationId').length === 0)) {
+                namespace.set(RequestContext.CORRELATION_ID, reqContext.request.get('correlationId'));
             }else {
-                namespace.set(RequestContext.UNIQUE_KEY, RequestContext.uniqueKeyGenerator());
+                namespace.set(RequestContext.CORRELATION_ID, RequestContext.uniqueKeyGenerator());
             }
             next();
         });

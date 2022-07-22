@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { VERSION_NEUTRAL, VersioningType } from '@nestjs/common';
+import {ValidationPipe, VERSION_NEUTRAL, VersioningType} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {getLogFormat, logLevel} from "./logger/winston.config";
@@ -16,8 +16,7 @@ import * as winston from 'winston';
     + Swagger
     + Logger // log rotate
     Security (auth)
-    Exception
-    Error
+    Exception / Error
     File
     Filter
     Transform pipe
@@ -25,7 +24,7 @@ import * as winston from 'winston';
     http client
     distributed tracing (OpenTracing, Jaeger)
     rate limiting (@nestjs/throttler )
-    Request context
+    + Request context
     gRPC
  */
 async function bootstrap() {
@@ -47,6 +46,10 @@ async function bootstrap() {
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+  }));
+
   app.enableVersioning({
     type: VersioningType.URI,
     //fixme: default 설정으로 모든 contoller 버전 컨트롤
@@ -55,9 +58,9 @@ async function bootstrap() {
   });
 
   const swaggerOptions = new DocumentBuilder()
-      .setTitle('Standard Project')
-      .setDescription('Blockchain API description')
-      .setVersion('1.0')
+      .setTitle(configService.get('SWAGGER_TITLE'))
+      .setDescription(configService.get('SWAGGER_DESC'))
+      .setVersion(configService.get('SWAGGER_VERSION'))
       // .addTag('blockchain')
       // .addBearerAuth()
       .build();
@@ -66,4 +69,5 @@ async function bootstrap() {
 
   await app.listen(configService.get('APP_PORT'));
 }
+
 bootstrap();
