@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {Body, Controller, Get, HttpCode, Param, Post, UseInterceptors} from '@nestjs/common';
 import { GameApiV1Service } from './game-api-v1.service';
 import { GameApiV1ConvertPoolDto } from './dto/game-api-v1.dto';
 import { ConvertPoolEntity } from '../repository/convert-pool.entitty';
@@ -8,6 +8,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import {ResponseMessage} from "../../decorator/response.decorator";
+import {SUCCESS} from "../../decorator/response.constants";
 
 @ApiBearerAuth()
 @ApiTags('Game API')
@@ -18,10 +20,12 @@ export class GameApiV1Controller {
   constructor(private readonly gameApiService: GameApiV1Service) {}
 
   @Get('/account/:address')
-  @ApiOperation({ summary: 'Create a account on Terra blockchain network' })
+  @HttpCode(201)
+  // @ResponseMessage(SUCCESS)
+  @ApiOperation({ summary: 'get a account on blockchain network' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   test(@Param('address') address: string): Promise<any> {
-    return this.gameApiService.createAccount(address);
+    return this.gameApiService.getAccount(address);
   }
 
   @Post('/create')

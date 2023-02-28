@@ -11,18 +11,12 @@ import { GameApiV1ConvertPoolDto } from './dto/game-api-v1.dto';
 import { ConfigService } from '@nestjs/config';
 import { LoggerService } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { RequestContext } from '../../context/request.context';
-import { TransactionUtil } from '../../util/transacation.util';
-import { BlockchainService } from '../../core/blockchain/blockchain.service';
+import { RequestContext } from '../../common/context/request.context';
+import { BlockchainService } from '../../bc-core/blockchain/blockchain.service';
+import {AxiosClientUtil} from "../../util/axios-client.util";
 
 @Injectable()
 export class GameApiV1Service {
-  private TxUtil: TransactionUtil = new TransactionUtil(
-    this.configService.get('SERVICE_USERAGENT'),
-    this.configService.get('SERVICE_URL'),
-    parseInt(this.configService.get('SERVICE_TIMEOUT')),
-  );
-
   private lcd = this.blockchainService.lcdClient();
   private bc = this.blockchainService.blockChainClient();
 
@@ -33,9 +27,10 @@ export class GameApiV1Service {
     private readonly usersRepository: Repository<ConvertPoolEntity>,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
+    private axiosClient: AxiosClientUtil,
   ) {}
 
-  async createAccount(address: string): Promise<any> {
+  async getAccount(address: string): Promise<any> {
     return this.bc.client.account(address);
   }
 
@@ -88,7 +83,7 @@ export class GameApiV1Service {
 
   async test2() {
 
-    await this.TxUtil.get('/v1/request', {"x-request-id": "sssss"})
+    await this.axiosClient.get('/v1/request', {"x-request-id": "sssss"})
     setTimeout(() => {
       this.logger.log(
         `>>>>>test2: ${RequestContext.REQUEST_ID} : ${RequestContext.get(

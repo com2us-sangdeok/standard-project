@@ -1,9 +1,8 @@
-import {GameApiException, GameApiHttpStatus} from "./exception";
+import { ApiCode } from '../enum/api-status.enum';
+import { ApiException } from './api-exception';
 
-export class ExternalServerException extends GameApiException {
-    constructor(message: any, error = 'External server call failed') {
-        super(
-            message, error, GameApiHttpStatus.INTERNAL_SERVER_ERROR
-          );
-    }
+export class ExternalServerException extends ApiException {
+  constructor(message: any, error = 'External server call failed') {
+    super(message, error, ApiCode.ERROR);
+  }
 }

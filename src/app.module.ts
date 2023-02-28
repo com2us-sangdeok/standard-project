@@ -12,12 +12,13 @@ import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { ConvertPoolEntity } from './game-api/repository/convert-pool.entitty';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { CommonModule } from './modules/common.module';
 import { WinstonModule } from 'nest-winston';
-import { getLogFormat, typeOrmTransports } from './logger/winston.config';
+import { getLogFormat, typeOrmTransports } from './common/logger/winston.config';
 import { LoggerMiddleware } from './middleware/logger.middleware';
-import DatabaseLogger from './logger/database.logger';
+import DatabaseLogger from './common/logger/database.logger';
 import { RequestContextMiddleware } from './middleware/request-context.middleware';
+import {APP_INTERCEPTOR} from "@nestjs/core";
+import {ResponseInterceptor} from "./interceptor/response.interceptor";
 
 @Module({
   imports: [
@@ -52,10 +53,12 @@ import { RequestContextMiddleware } from './middleware/request-context.middlewar
       inject: [ConfigService],
     }),
     GameApiModule,
-    CommonModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, {
+    provide: APP_INTERCEPTOR,
+    useClass: ResponseInterceptor,
+  },],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

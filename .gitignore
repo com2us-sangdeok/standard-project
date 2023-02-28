@@ -37,3 +37,6 @@ lerna-debug.log*
 # Personal Setting
 .npmrc
 .env.local
+
+# pkg file
+standard-project
